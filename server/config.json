@@ -1,0 +1,13 @@
+{
+    "ws-server": {
+        "switch" : true,
+        "port": 8080
+    },
+    "http-server": {
+        "switch" : true,
+        "port": 8081
+    },
+    "console": {
+        "printAllmessages" : true
+    }
+}
