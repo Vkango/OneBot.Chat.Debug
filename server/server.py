@@ -3,15 +3,16 @@ import asyncio
 import websockets
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import os
-
-# set up
-connected_clients = set()
+import time
+from message_convert import message_convert
+convert = message_convert()
 current_dir = os.path.dirname(__file__)
 config_path = os.path.join(current_dir, 'config.json')
 with open(config_path, 'r', encoding='utf-8') as f:
     config = json.load(f)
 
 
+connected_clients = set()
 def process_return_msg(data = 'null', status = 'success', retcode = '', echo = ''):
     ret = {
         'status': status,
@@ -21,14 +22,45 @@ def process_return_msg(data = 'null', status = 'success', retcode = '', echo = '
     }
     return json.dumps(ret)
 
+def time1():
+    return int(time.time())
 async def send_group_msg(msg):
-    await broadcast_message("这是一个广播消息")
-    return f"发送群消息: {msg['message']}"
+    message = msg['message']
+    try:
+        message[0]['type']
+        raw_message = convert.array2cq(message)
+    except:
+        raw_message = message
+    msg_id = 0
+    user_id = 0
+    event_data = {
+    "self_id": 0,
+    "user_id": 0,
+    "time": time1(),
+    "message_id": msg_id,
+    "message_seq": msg_id,
+    "real_id": msg_id,
+    "message_type": "group",
+    "sender": {
+        "user_id": user_id,
+        "nickname": "Test User",
+        "card": "",
+        "role": "member"
+    },
+    "raw_message": raw_message,
+    "font": 14,
+    "sub_type": "normal",
+    "message": convert.cq2array(raw_message),
+    "message_format": "array",
+    "post_type": "message",
+    "group_id": msg['group_id'],
+}
+    await broadcast_message(json.dumps(event_data, ensure_ascii=False))
+    return """{"message": "success"}"""
 
 actions = {
     "send_group_msg": send_group_msg
 }
-
 async def websocket_handler(websocket, path=None):
     print("🔰 新客户已加入")
     connected_clients.add(websocket)
@@ -39,7 +71,7 @@ async def websocket_handler(websocket, path=None):
             action = data_action['action']
             params = data_action.get('params', [])
             if action in actions:
-                response = actions[action](*params)
+                response = await actions[action](params)
                 await websocket.send(response)
             else:
                 await websocket.send(f"未知动作: {action}")
@@ -48,7 +80,7 @@ async def websocket_handler(websocket, path=None):
 
 async def broadcast_message(message):
     if connected_clients:
-        await asyncio.wait([client.send(message) for client in connected_clients])
+        await asyncio.wait([asyncio.create_task(client.send(message)) for client in connected_clients])
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -65,7 +97,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         else:
             self.send_response(400)
             self.end_headers()
-            self.wfile.write("Unknown command")
+            self.wfile.write("未知动作")
+
 async def start_websocket_server():
     if config['ws-server']['switch']:
         print("🚀 正在启动 WebSocket 服务器")
