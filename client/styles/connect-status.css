@@ -1,0 +1,49 @@
+.connect-status
+{
+    opacity: 0.4;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.circle-green
+{
+    background-color: rgb(114, 255, 114);
+    width: 8px;
+    height: 8px;
+    position: absolute;
+    border-radius: 8px;
+    right: 0px;
+    display: inline-block;
+    position: relative;
+    top: 0px;
+}
+#circle-green
+{
+    background-color: rgb(114, 255, 114)
+}
+#circle-red
+{
+    background-color: red;
+}
+.status-bar
+{
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 30px;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 5px;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.connect-status:hover
+{
+    opacity: 1;
+}
+.connect-status:hover + .status-bar
+{
+    display: block;
+}

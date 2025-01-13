@@ -1,0 +1,26 @@
+.input-box textarea
+{
+    color: white;
+    background-color: rgba(0, 0, 0, 0);
+    border: 0; 
+    font-size: 19px;
+    top: 35px;
+    position: absolute;
+    height: calc(100% - 90px);
+    padding: 0 1px;
+    left: 0px;
+    width: calc(100% - 4px);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+textarea:focus {
+    border: none;
+    outline: none;
+}
+.input-box button{
+    position: absolute;
+    right: 10px;
+    bottom: 15px;
+    border: 0;
+    color: white;
+    font-size: 18px;
+}

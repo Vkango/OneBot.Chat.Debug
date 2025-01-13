@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>OneBot.Chat.Debug</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="styles/message.css">
+    <link rel="stylesheet" href="styles/connect-status.css">
+    <link rel="stylesheet" href="styles/inputbox.css">
+    <link rel="stylesheet" href="styles/buttons.css">
+    
+    <script type="module" src="scripts/app.js" defer></script>
+
+</head>
+<body> 
+    <div class="chat">
+        <div class="group-navibar">
+            <span class="group-name">EvenBot</span>
+        </div>
+        <div class="messages">
+        </div>
+        <div class="input-box">
+            <div class="input-box-buttons">
+                <img class="icon" src="src/icons/expression_16.svg" alt="expression">
+                <img class="icon" src="src/icons/screenshot_16.svg" alt="expression">
+            </div>
+            <textarea id="message" placeholder="输入消息" rows="3" style="resize: none;" autocomplete="off"></textarea>
+                <button id="sendButton" style="display: inline-block;">发送</button>
+        </div>
+    </div>
+    <div class="connect-status">
+        <span class="circle-green"></span>
+        <span class="ws-status">OneBot.Chat.Debug · Online</span>
+    </div>
+    <div class="status-bar">
+        <span style="font-weight: bold;">OneBot.Chat.Debug<br></span>
+        <span class="status-bar-item" style="opacity: 0.5;">WebSocket: 127.0.0.1:1148<br></span>
+    </div>
+</body>
+</html>

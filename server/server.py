@@ -28,11 +28,13 @@ async def send_group_msg(msg):
     message = msg['message']
     try:
         message[0]['type']
-        raw_message = convert.array2cq(message)
+        raw_message = convert.array2cq(message, False)
     except:
-        raw_message = message
+        raw_message = convert.array2cq(convert.cq2array(message, False), True)
     msg_id = 0
-    user_id = 0
+    print(msg, "msg")
+    user_id = msg['user_id']
+    print(user_id, "user_id")
     event_data = {
     "self_id": 0,
     "user_id": 0,
@@ -50,7 +52,7 @@ async def send_group_msg(msg):
     "raw_message": raw_message,
     "font": 14,
     "sub_type": "normal",
-    "message": convert.cq2array(raw_message),
+    "message": convert.cq2array(raw_message, True),
     "message_format": "array",
     "post_type": "message",
     "group_id": msg['group_id'],
@@ -75,6 +77,8 @@ async def websocket_handler(websocket, path=None):
                 await websocket.send(response)
             else:
                 await websocket.send(f"未知动作: {action}")
+    except websockets.exceptions.ConnectionClosed:
+        print("🔴 客户端断开连接")
     finally:
         connected_clients.remove(websocket)
 
@@ -83,22 +87,29 @@ async def broadcast_message(message):
         await asyncio.wait([asyncio.create_task(client.send(message)) for client in connected_clients])
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
+    def _set_headers(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+    def do_OPTIONS(self):
+        self._set_headers()
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length).decode('utf-8')
-        data_action = json.loads(post_data)
-        action = data_action['action']
-        params = data_action.get('params', [])
+        params = json.loads(post_data)
+        action = self.path.lstrip('/')
         if action in actions:
-            response = actions[action](*params)
+            response = asyncio.run(actions[action](params))
             self.send_response(200)
-            self.end_headers()
+            self._set_headers()
             self.wfile.write(response.encode('utf-8'))
         else:
             self.send_response(400)
-            self.end_headers()
+            self._set_headers()
             self.wfile.write("未知动作")
-
 async def start_websocket_server():
     if config['ws-server']['switch']:
         print("🚀 正在启动 WebSocket 服务器")

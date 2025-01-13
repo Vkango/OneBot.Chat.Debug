@@ -1,0 +1,9 @@
+{
+    "fiveServer.ignore": [
+        "/client/images/",
+        "**/client/images/**",
+        "**/images/**",
+        "/server/",
+        "**/server/**"
+    ]
+}
