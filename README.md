@@ -32,7 +32,7 @@
 
 ## LiveServer/FiveServer 的配置
 
-在vscode settings.json中设置排除项，例如：
+在vscode settings.json中设置排除项，否则发送图片会被LiveServer检测到目录变化导致刷新。
 
 ``````json
 {
@@ -50,7 +50,7 @@
 
 服务器开放在localhost
 
-端口可在config.json内修改
+端口可在 `server/config.json `内修改
 
 ``````json
 {
@@ -68,28 +68,30 @@
 }
 ``````
 
-在 `app.js` 中，您需要修改以下内容
+如果端口变化，在 `app.js` 中，需要修改以下内容
 
 ```javascript
 const ws_uri = 'ws://127.0.0.1:8080'; // 修改为目标端口
 const http_url = 'http://127.0.0.1:8081' // 修改为目标端口
 ```
 
-以及Bot的WS，HTTP端口配置
+不要忘记修改 Bot 的 WS、HTTP 端口配置
 
-## 头像预处理
+## 群聊与用户的模拟
 
-client - images - avatars 中，请预留 0.jpg， 1.jpg
+群聊配置：`/server/group.json`
 
-其中，0.jpg是机器人头像，1.jpg是您的头像
+用户配置：`/server/user.json`
 
-## Bot的配置
+用户头像：`/client/images/avatars/{user_id}.jpg`
 
-由于没有登录功能，无法对来源用户进行区分
+根据用户ID添加 JPG 图片作为头像。
 
-在发送群消息中，您需要指明user_id = 0
+## Bot API 请求的配置
 
-以便区分来源。
+由于没有登录功能，无法对来源用户进行区分，需要额外配置以下内容：
+
+在发送群消息中，除了消息内容、群号，还需要指明 `user_id`，目的是区分消息来源。该参数非 OneBot11 标准参数。
 
 例如：
 
@@ -100,14 +102,12 @@ def SendGroupMsg(self, groupid, msg):
     return self.Api_SendReq("send_group_msg", data1)
 ```
 
-## 注意
+# 注意
 
-`/client/images` 文件夹中的内容不会自动清理。
+`/client/images` 文件夹中的内容不会自动清理，并会被同名文件覆盖。
 
 # 引用
 
 背景纹理图片来自：[Transparent Textures](https://www.transparenttextures.com/)
-
-图标素材来自NTQQ9
 
 based on NeoChat
