@@ -12,60 +12,89 @@
     font-size: 18px;
     padding: 5px 0;
 }
+.user-name
+{
+    width: 100%;
+    font-size: 12px;
+}
 .message-item
 {
     position: relative;
-    width: 100%
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 10px 0;
 }
-.message-item .avatar
+.message-block
+{
+    flex: auto;
+    gap: 10px;
+}
+.avatar
 {
     position: relative;
-    width: 50px;
-    height: 50px;
-    left: 15px;
-    top: 15px;
+    width: 40px;
+    height: 40px;
+}
+.message-item .avatar {
+    margin-left: 10px;
+}
+.message-item-self .avatar {
+    margin-right: 10px;
 }
 .message-item .message-text
 {
     background-color: rgba(255, 255, 255, 0.1);
-    position: absolute;
-    left: 80px;
+    position: relative;
     padding: 10px;
-    top: -35px;
     width: fit-content;
-    max-width: calc(100% - 180px);
+    max-width: calc(100% - 120px);
     border-radius: 5px;
     position: relative;
     word-wrap: break-word;
     word-break: break-all;
-    line-height: 25px;
-    font-size: 18px;
+}
+.notification {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    opacity: 0.5;
+    font-size: 12px;
+    margin: 10px 0;
 }
 .message-item-self
 {
     width: 100%;
     display: flex;
     justify-content: flex-end;
-    margin-bottom: 44px;
     padding-top: 10px;
+    gap: 10px;
+    margin: 10px 0;
 }
-.message-item-self .avatar
+.message-item-self .user-name
 {
-    position: absolute;
-    right: 10px;
-    width: 50px;
-    height: 50px;
+    text-align: right;
+}
+.message-item-self .message-block
+{
+    justify-content: right;
+}
+.message-block {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 .message-text
 {
     user-select: text;
+    font-size: 14px;
+    line-height: 23px;
 }
 .message-item-self .message-text
 {
-
     align-self: right;
     background-color: rgba(0, 102, 204, 0.6);
-    right: 80px;
     padding: 10px;
     width: fit-content;
     max-width: calc(100% - 180px);
@@ -73,8 +102,6 @@
     position: relative;
     word-wrap: break-word;
     word-break: break-all;
-    line-height: 25px;
-    font-size: 18px;
 }
 #group-image
 {

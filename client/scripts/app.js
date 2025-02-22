@@ -9,25 +9,89 @@ let websocket = new WSMessage(ws_uri, ProcessNewMessage)
 let Api = new API(http_url, websocket);
 let currentGroupId = 0;
 let self_id = 1; // bot id = 0
+let group_list = [];
 document.getElementsByClassName('status-bar-item')[0].innerHTML = 'WebSocket: ' + ws_uri + '<br>' + 'HTTP: ' + http_url;
+function showSwitchGroup() {
+    const groupList = document.getElementsByClassName('group-list')[0];
+    if (groupList.style.display === 'none' || !groupList.style.display) {
+        groupList.style.display = 'block';
+    } else {
+        groupList.style.display = 'none';
+    }
+}
+function changeSelfID() {
+    self_id = Number(prompt("Enter a new self-id:", self_id));
+    document.getElementById("currentAvatar").src = './images/avatars/' + self_id + '.jpg';
+    document.getElementById("currentAvatar").alt = self_id;
+}
+async function getGroupList() {
+    const group_list_ = document.getElementsByClassName('group-list')[0];
 
+    try {
+        group_list = await Api.getGroupListHTTP();
+    } catch (error) {
+        console.error('API请求失败: ', error);
+        return;
+    }   
+    group_list = group_list.data;
+    for (var index = 0; index < group_list.length; index++) {
+        const iGroup = group_list[index];
+        const group_item = document.createElement('div');
+        group_item.className = "group-list-item";
+        group_item.innerHTML = `
+            <span class="group-list-item-groupname">${iGroup.group_name}</span>`;
+        group_item.addEventListener('click', ((index) => {
+                return () => {
+                    switchChat(index);
+                };
+            })(index));
+        group_list_.appendChild(group_item);
+    }
+    document.getElementsByClassName('group-name')[0].innerText = group_list[currentGroupId].group_name;
+}
 function ProcessNewMessage(event) {
     ////////////////////////////////////////////////////////////
     // 更新对话列表
     const message = JSON.parse(event.data);
-    displayMessage({
-        text: message.message,
-        avatar: './images/avatars/' + message.sender.user_id + '.jpg',
-        user_id: message.sender.user_id,
-        id: message.real_id,
-    });
+    if (!message_list[message.group_id]) {
+        message_list[message.group_id] = [];
+    }
+    if (message.post_type == "notice") {
+        if (group_list[currentGroupId].group_id == message.group_id) {
+            showNotice({
+                data: message
+            })
+        }
+        message_list[message.group_id].push(message);
+    }
+    else {
+        message_list[message.group_id].push({
+            text: message.message,
+            avatar: './images/avatars/' + message.sender.user_id + '.jpg',
+            user_id: message.sender.user_id,
+            id: message.real_id,
+            nick: message.sender.nickname,
+        });
+        if (group_list[currentGroupId].group_id == message.group_id) {
+            displayMessage({
+                text: message.message,
+                avatar: './images/avatars/' + message.sender.user_id + '.jpg',
+                user_id: message.sender.user_id,
+                id: message.real_id,
+                nick: message.sender.nickname,
+            });
+        }
+
+    }
+    console.log(message_list)
+
 };
 async function sendMessage() {
     const messageInput = document.getElementById('message');
     const message = messageInput.value.trim();
     if (message) {
         try {
-            await Api.SendGroupMessageHTTP(currentGroupId, message);
+            await Api.SendGroupMessageHTTP(group_list[currentGroupId].group_id, self_id, message);
             messageInput.value = '';
         }
         catch (error) {
@@ -36,12 +100,36 @@ async function sendMessage() {
 
     }
 }
-
+function showNotice(message) {
+    console.log("ws-onnotice", message)
+    const messagesContainer = document.getElementsByClassName('messages')[0];
+    if (messagesContainer) {
+        const isScrolledToBottom = messagesContainer.scrollHeight - messagesContainer.clientHeight <= messagesContainer.scrollTop + 1;
+        let message_html = "";
+        if (message.data.notice_type == "group_recall") {
+            message_html = `${message.data.nick} 尝试撤回一条消息 (以阻止)<br>消息ID: ${message.data.message_id}`;
+        }
+        if (message.data.notice_type == "group_ban") {
+            message_html = `恭喜 ${message.data.user_id} 被禁言 ${message.data.duration}`;
+        }
+        const messageElement = document.createElement('div');
+        messageElement.className = 'notification';
+        messageElement.innerHTML = message_html;
+        messagesContainer.appendChild(messageElement);
+        if (isScrolledToBottom) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    }
+    else {
+        console.error('无法找到 messages 容器');
+    }
+}
 function displayMessage(message) {
     const messagesContainer = document.getElementsByClassName('messages')[0];
     if (messagesContainer) {
         const isScrolledToBottom = messagesContainer.scrollHeight - messagesContainer.clientHeight <= messagesContainer.scrollTop + 1;
         let message_html = ""
+        console.log("display mesg", message.text);
         for (let i = 0; i < message.text.length; i++) {
 
             if (message.text[i].type == "text") {
@@ -139,12 +227,22 @@ function displayMessage(message) {
 
 
     };
-    
+    console.log("ws-onnewmessage", message)
     const messageElement = document.createElement('div');
+    message_html += "<br>-------<br>消息ID: " + message.id;
     messageElement.className = (message.user_id == self_id) ? 'message-item-self' : 'message-item';
-    messageElement.innerHTML = `
-    <img class="avatar" src="${message.avatar}" width="24" height="24">
-    <div class="message-text">${message_html}</div>`
+    messageElement.innerHTML = (message.user_id == self_id) ? `
+    <div class="message-block">
+        <div class="user-name">${message.nick}</div>
+        <div class="message-text">${message_html}</div>
+    </div>
+    <img class="avatar" src="${message.avatar}" width="24" height="24">` : 
+    `<img class="avatar" src="${message.avatar}" width="24" height="24">
+    <div class="message-block">
+        <div class="user-name">${message.nick}</div>
+        <div class="message-text">${message_html}</div>
+    </div>
+    `
     messagesContainer.appendChild(messageElement);
     if (isScrolledToBottom) {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -174,10 +272,14 @@ document.addEventListener('DOMContentLoaded', function() {
     connectStatus.addEventListener('mouseleave', function() {
         statusBar.style.display = 'none';
     });
-
+    getGroupList()
     const messageInput = document.getElementById('message');
     const sendButton = document.getElementById('sendButton');
     sendButton.addEventListener('click', sendMessage);
+    const changeSelfIDButton = document.getElementById('changeSelfID');
+    changeSelfIDButton.addEventListener('click', changeSelfID);
+    const switchGroup = document.getElementsByClassName('group-select')[0];
+    switchGroup.addEventListener('click', showSwitchGroup);
     messageInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
@@ -186,3 +288,29 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+function switchChat(Target_ID) {
+    if (currentGroupId == Target_ID) { return; }
+    currentGroupId = Target_ID;
+    console.log('target', Target_ID);
+    console.log(group_list, group_list[Number(Target_ID)], Target_ID)
+    document.getElementsByClassName("messages")[0].innerHTML = "";
+    const messages = message_list[group_list[Target_ID].group_id] || [];
+    messages.forEach(message => {
+        if (message.post_type == "notice") {
+            showNotice({
+                data: message
+            })
+        }
+        else {
+            displayMessage({
+                text: message.text,
+                avatar: './images/avatars/' + message.user_id + '.jpg',
+                user_id: message.user_id,
+                id: message.id,
+                nick: message.nick,
+            });
+        }
+    })
+    document.getElementsByClassName('group-name')[0].innerText = group_list[currentGroupId].group_name;
+    document.getElementsByClassName('group-list')[0].style.display = 'none';
+}

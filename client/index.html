@@ -15,18 +15,24 @@
 <body> 
     <div class="chat">
         <div class="group-navibar">
-            <span class="group-name">EvenBot</span>
+            <button class="group-select">
+            <span class="group-name">undefined</span>
+            <img src="./src/icons/chevrondown.svg">
+            </button>
         </div>
         <div class="messages">
         </div>
         <div class="input-box">
             <div class="input-box-buttons">
-                <img class="icon" src="src/icons/expression_16.svg" alt="expression">
-                <img class="icon" src="src/icons/screenshot_16.svg" alt="expression">
+                <img src="../client/images/avatars/1.jpg" id="currentAvatar" class="avatar" style="width: 24px; height: 24px;">
+                <span><div id="changeSelfID">切换身份</div></span>
             </div>
             <textarea id="message" placeholder="输入消息" rows="3" style="resize: none;" autocomplete="off"></textarea>
                 <button id="sendButton" style="display: inline-block;">发送</button>
         </div>
+    </div>
+    <div class="group-list">
+
     </div>
     <div class="connect-status">
         <span class="circle-green"></span>
@@ -36,5 +42,6 @@
         <span style="font-weight: bold;">OneBot.Chat.Debug<br></span>
         <span class="status-bar-item" style="opacity: 0.5;">WebSocket: 127.0.0.1:1148<br></span>
     </div>
+    
 </body>
 </html>

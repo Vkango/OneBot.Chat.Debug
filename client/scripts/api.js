@@ -10,7 +10,7 @@ export class API{
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ group_id: group_id, message: message }),
+            body: JSON.stringify({ group_id: group_id, message: msg, user_id: 1 }),
         })
         .then(response => response.json())
         .then(data => {console.log('API响应:', data); return data;})
@@ -25,14 +25,34 @@ export class API{
             }
         }))
     };
-    async SendGroupMessageHTTP(group_id, msg) {
+    async SendGroupMessageHTTP(group_id, user_id, msg) {
         try {
             const response = await fetch(this.httpUrl + "/send_group_msg", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ group_id: group_id, message: msg, user_id: 1 }),
+                body: JSON.stringify({ group_id: group_id, message: msg, user_id: user_id }),
+            });
+            if (!response.ok) {
+                throw new Error('网络响应不正常');
+            }
+            const data = await response.json();
+            console.log('API响应:', data);
+            return data;
+        } catch (error) {
+            console.error('API错误:', error);
+            throw error;
+        }
+    }
+    async getGroupListHTTP() {
+        try {
+            const response = await fetch(this.httpUrl + "/get_group_list", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: { data: null },
             });
             if (!response.ok) {
                 throw new Error('网络响应不正常');
